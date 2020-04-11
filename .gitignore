@@ -338,3 +338,14 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# Python folders
+/.mypy_cache/3.7
+/env
+
+# Visual studio project files
+*.pyproj
+*.sln
+
+# CryptoPals task files
+/set1task4.txt

@@ -1,6 +1,5 @@
 import base64
 import sys
-from collections import Counter
 
 class Set1(object):
     """Solutions for qualifying exercises from Set 1 in Cryptopals."""
@@ -15,12 +14,12 @@ class Set1(object):
         return bytes([r ^ l for r, l in zip(hex_input1, hex_input2)])
 
     @staticmethod
-    def chi_squared_scoring(text:str):
+    def chi_squared_scoring(text:bytes):
         """ Returns the chi-squared statistic of the text. """
         letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         frequencies = [8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.360, 0.150, 1.974, 0.074]
+        text = text.upper().replace(b" ", b"")
         expected_counts = dict(zip(letters, list(map(lambda x: x * len(text), frequencies))))
-        text = text.upper()
         actual_counts = {letter: text.count(letter.encode()) for letter in letters}
 
         normalized_square_error = lambda a, e: (a - e)**2/e
