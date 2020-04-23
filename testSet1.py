@@ -2,8 +2,8 @@ import unittest
 import sys
 from Set1 import Set1
 
-class Test_Set1(unittest.TestCase):
 
+class Test_Set1(unittest.TestCase):
     def test_task1(self):
         hex_input = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
         expected = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t"
@@ -11,7 +11,6 @@ class Test_Set1(unittest.TestCase):
         result = Set1.hex2base64(bytes.fromhex(hex_input))
 
         self.assertEqual(expected, result.decode())
-
 
     def test_task2(self):
         input1 = "1c0111001f010100061a024b53535009181c"
@@ -23,9 +22,14 @@ class Test_Set1(unittest.TestCase):
         self.assertEqual(expected, result.hex())
 
     def test_task3(self):
-        hex_input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+        hex_input = (
+            "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+        )
 
-        self.assertEqual(('X', b"Cooking MC's like a pound of bacon"), Set1.single_byte_decipher(bytes.fromhex(hex_input)))
+        self.assertEqual(
+            ("X", b"Cooking MC's like a pound of bacon"),
+            Set1.single_byte_decipher(bytes.fromhex(hex_input)),
+        )
 
     def test_task4(self):
         best_score = sys.maxsize
@@ -43,5 +47,6 @@ class Test_Set1(unittest.TestCase):
 
         self.assertEqual(("5", b"Now that the party is jumping\n"), (key, english_text))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
