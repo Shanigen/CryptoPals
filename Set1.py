@@ -1,22 +1,23 @@
 import base64
 import sys
+from itertools import cycle
 
 
 class Set1(object):
     """Solutions for qualifying exercises from Set 1 in Cryptopals."""
 
     @staticmethod
-    def hex2base64(hex_input: bytes):
+    def hex2base64(hex_input: bytes) -> bytes:
         """ Converts bytes representing hex string to bytes representing base64 string """
         return base64.b64encode(hex_input)
 
     @staticmethod
-    def xor(hex_input1: bytes, hex_input2: bytes):
+    def fixed_xor(text: bytes, key: bytes) -> bytes:
         """ Takes two equal-length buffers and produces their XOR combination in bytes. """
-        return bytes([r ^ l for r, l in zip(hex_input1, hex_input2)])
+        return bytes([l ^ r for l, r in zip(text, key)])
 
     @staticmethod
-    def chi_squared_scoring(text: bytes):
+    def chi_squared_scoring(text: bytes) -> float:
         """ Returns the chi-squared statistic of the text. """
         letters = [
             "A",
@@ -89,17 +90,30 @@ class Set1(object):
         )
 
     @staticmethod
-    def single_byte_decipher(hex_input: bytes):
+    def single_byte_decipher(hex_input: bytes) -> (str, bytes):
         """ Takes bytes representing hex encoded string that was XOR'd against a single character. Returns tuple containg key and decrypted message. """
         scores = {}
         for i in range(256):
             scores[chr(i)] = Set1.chi_squared_scoring(
-                Set1.xor(hex_input, [i] * len(hex_input))
+                Set1.fixed_xor(hex_input, [i] * len(hex_input))
             )
 
         # Get key with minimal chi-squared error.
         key = min(scores, key=scores.get)
-        return (key, Set1.xor(hex_input, [ord(key)] * len(hex_input)))
+        return (key, Set1.fixed_xor(hex_input, [ord(key)] * len(hex_input)))
+
+    @staticmethod
+    def repeated_xor(text: bytes, key: bytes) -> bytes:
+        """ Takes two non equal-length buffers and produces their XOR combination in bytes."""
+        longer, shorter = b"", b""
+        if len(text) >= len(key):
+            longer = text
+            shorter = key
+        else:
+            longer = key
+            shorter = text
+        
+        return bytes([l ^ s for l, s in zip(longer, cycle(shorter))])
 
 
 def main():

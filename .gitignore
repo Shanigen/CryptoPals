@@ -347,5 +347,8 @@ healthchecksdb
 *.pyproj
 *.sln
 
+# Visual studio code files
+.vscode
+
 # CryptoPals task files
 /set1task4.txt
