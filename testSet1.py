@@ -17,7 +17,7 @@ class Test_Set1(unittest.TestCase):
         input2 = "686974207468652062756c6c277320657965"
         expected = "746865206b696420646f6e277420706c6179"
 
-        result = Set1.xor(bytes.fromhex(input1), bytes.fromhex(input2))
+        result = Set1.fixed_xor(bytes.fromhex(input1), bytes.fromhex(input2))
 
         self.assertEqual(expected, result.hex())
 
@@ -38,7 +38,7 @@ class Test_Set1(unittest.TestCase):
 
         with open("set1task4.txt", "r") as f:
             for line in f:
-                result = Set1.single_byte_decipher(bytes.fromhex(line))
+                result = Set1.single_byte_decipher(bytes.fromhex(line.rstrip()))
                 score = Set1.chi_squared_scoring(result[1])
                 if best_score > score:
                     best_score = score
@@ -46,6 +46,15 @@ class Test_Set1(unittest.TestCase):
                     key = result[0]
 
         self.assertEqual(("5", b"Now that the party is jumping\n"), (key, english_text))
+
+    def test_task5(self):
+        input = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
+        key = "ICE"
+        expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
+
+        result = Set1.repeated_xor(input.encode(), key.encode())
+
+        self.assertEqual(expected, result.hex())
 
 
 if __name__ == "__main__":
