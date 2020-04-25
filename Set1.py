@@ -1,15 +1,21 @@
 import base64
 import sys
 from itertools import cycle
+from bitstring import Bits
 
 
 class Set1(object):
     """Solutions for qualifying exercises from Set 1 in Cryptopals."""
 
     @staticmethod
-    def hex2base64(hex_input: bytes) -> bytes:
+    def hex2base64(text: bytes) -> bytes:
         """ Converts bytes representing hex string to bytes representing base64 string """
-        return base64.b64encode(hex_input)
+        return base64.b64encode(text)
+
+    @staticmethod
+    def base64decode(text: bytes) -> bytes:
+        """ Decode base64 encoded bytes-like object. """
+        return base64.b64decode(text)
 
     @staticmethod
     def fixed_xor(text: bytes, key: bytes) -> bytes:
@@ -90,17 +96,34 @@ class Set1(object):
         )
 
     @staticmethod
-    def single_byte_decipher(hex_input: bytes) -> (str, bytes):
+    def single_byte_xor_decipher(text: bytes) -> (bytes, bytes):
         """ Takes bytes representing hex encoded string that was XOR'd against a single character. Returns tuple containg key and decrypted message. """
         scores = {}
         for i in range(256):
             scores[chr(i)] = Set1.chi_squared_scoring(
-                Set1.fixed_xor(hex_input, [i] * len(hex_input))
+                Set1.fixed_xor(text, [i] * len(text))
             )
-
         # Get key with minimal chi-squared error.
         key = min(scores, key=scores.get)
-        return (key, Set1.fixed_xor(hex_input, [ord(key)] * len(hex_input)))
+
+        return (key.encode(), Set1.fixed_xor(text, [ord(key)] * len(text)))
+
+    @staticmethod
+    def detect_single_char_xor(input_file):
+        best_score = sys.maxsize
+        english_text = ""
+        key = ""
+
+        with open(input_file, "r") as f:
+            for line in f:
+                result = Set1.single_byte_xor_decipher(bytes.fromhex(line.rstrip()))
+                score = Set1.chi_squared_scoring(result[1])
+                if best_score > score:
+                    best_score = score
+                    english_text = result[1]
+                    key = result[0]
+
+        return (key, english_text)
 
     @staticmethod
     def repeated_xor(text: bytes, key: bytes) -> bytes:
@@ -112,8 +135,57 @@ class Set1(object):
         else:
             longer = key
             shorter = text
-        
+
         return bytes([l ^ s for l, s in zip(longer, cycle(shorter))])
+
+    @staticmethod
+    def hamming_distance(text1: bytes, text2: bytes) -> int:
+        """ Return Hamming distance between binary representations of the two input texts."""
+        distance = 0
+
+        for l, r in zip(Bits(text1).bin, Bits(text2).bin):
+            distance += 1 if l != r else 0
+        return distance
+
+    @staticmethod
+    def break_repeating_key_xor(text: bytes) -> (bytes, bytes):
+        keysizes_scores = {}
+        # Get normalized edit distances and find the 3 keysizes with best score
+        for keysize in range(2, 41):
+            blocks = [text[i * keysize : (i * keysize) + keysize] for i in range(4)]
+            distances = [
+                Set1.hamming_distance(blocks[i], blocks[i + 1])
+                for i in range(len(blocks) - 1)
+            ]
+            keysizes_scores[keysize] = (sum(distances) / len(distances)) / keysize
+
+        keysizes_scores = {k: v for k, v in sorted(keysizes_scores.items(), key=lambda item: item[1])}
+        best_keysizes = list(keysizes_scores.keys())[0:3]
+
+        keys = {}
+        for keysize in best_keysizes:
+            keysized_blocks = [
+                text[i * keysize : (i * keysize) + keysize]
+                for i in range(len(text) // keysize)
+            ]
+
+            transposed_blocks = [b"" for _ in range(keysize)]
+            for i in range(keysize):
+                for block in keysized_blocks:
+                    transposed_blocks[i] += bytes([block[i]])
+
+            key = b""
+            for block in transposed_blocks:
+                key += Set1.single_byte_xor_decipher(block)[0]
+            keys[keysize] = key
+
+        text_scores = {} 
+        for keysize, key in keys.items():
+            text_scores[key] = Set1.chi_squared_scoring(Set1.repeated_xor(text, key))
+        key = min(text_scores, key=text_scores.get)
+        
+        return (key, Set1.repeated_xor(text, key))
+        
 
 
 def main():
