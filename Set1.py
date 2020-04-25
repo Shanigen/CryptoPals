@@ -1,6 +1,7 @@
 import base64
 import sys
 from itertools import cycle
+from collections import Counter
 from bitstring import Bits
 from Crypto.Cipher import AES
 
@@ -150,6 +151,7 @@ class Set1(object):
 
     @staticmethod
     def break_repeating_key_xor(text: bytes) -> (bytes, bytes):
+        """ """
         keysizes_scores = {}
         # Get normalized edit distances and find the 3 keysizes with best score
         for keysize in range(2, 41):
@@ -190,15 +192,32 @@ class Set1(object):
         return (key, Set1.repeated_xor(text, key))
 
     @staticmethod
-    def aes_ecb_decrypt(text: bytes, key: bytes):
+    def aes_ecb_decrypt(text: bytes, key: bytes, block_size=16) -> bytes:
+        """ Decrypts text encrypted with AES in ECB mode. """
         cipher = AES.new(key, AES.MODE_ECB)
-        blocks = [text[i * 16 : (i * 16) + 16] for i in range(len(text) // 16)]
+        blocks = [
+            text[i * block_size : (i * block_size) + block_size]
+            for i in range(len(text) // block_size)
+        ]
 
         result = b""
         for block in blocks:
             result += cipher.decrypt(block)
 
         return result
+
+    @staticmethod
+    def detect_aes_ecb(text: bytes, block_size=16) -> bool:
+        """ Returns true if the text was encrypted with AES in ECB mode. """
+        blocks = [
+            text[i * block_size : (i * block_size) + block_size]
+            for i in range(len(text) // block_size)
+        ]
+        blocks_num = len(blocks)
+
+        result = list(Counter(blocks))
+
+        return len(result) != blocks_num
 
 
 def main():
