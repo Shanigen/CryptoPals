@@ -37,29 +37,36 @@ class Test_Set1(unittest.TestCase):
         self.assertEqual((b"5", b"Now that the party is jumping\n"), result)
 
     def test_repeated_xor(self):
-        input = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
-        key = "ICE"
+        text = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
+        key = b"ICE"
         expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
 
-        result = Set1.repeated_xor(input.encode(), key.encode())
+        result = Set1.repeated_xor(text, key)
 
         self.assertEqual(expected, result.hex())
 
     def test_hamming_distance(self):
-        text1 = "this is a test"
-        text2 = "wokka wokka!!!"
+        text1 = b"this is a test"
+        text2 = b"wokka wokka!!!"
 
-        result = Set1.hamming_distance(text1.encode(), text2.encode())
+        result = Set1.hamming_distance(text1, text2)
 
         self.assertEqual(37, result)
 
     def test_break_reapeated_xor(self):
-        txt = open("set1task6.txt", "r").read().encode()
+        text = open("set1task6.txt", "r").read().encode()
 
-        result = Set1.break_repeating_key_xor(Set1.base64decode(txt))[0]
+        result = Set1.break_repeating_key_xor(Set1.base64decode(text))[0]
 
-        self.assertEqual(b'Terminator X: Bring the noise', result)
+        self.assertEqual(b"Terminator X: Bring the noise", result)
 
+    def test_aes_ecb_decrypt(self):
+        text = Set1.base64decode(open("set1task7.txt", "r").read().encode())
+        key = b"YELLOW SUBMARINE"
+
+        result = Set1.aes_ecb_decrypt(text, key)
+
+        self.assertEqual(b"I'm back and I'm ringin' the bell ", result.split(b"\n")[0])
 
 if __name__ == "__main__":
     unittest.main()

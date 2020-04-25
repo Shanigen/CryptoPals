@@ -2,6 +2,7 @@ import base64
 import sys
 from itertools import cycle
 from bitstring import Bits
+from Crypto.Cipher import AES
 
 
 class Set1(object):
@@ -159,7 +160,9 @@ class Set1(object):
             ]
             keysizes_scores[keysize] = (sum(distances) / len(distances)) / keysize
 
-        keysizes_scores = {k: v for k, v in sorted(keysizes_scores.items(), key=lambda item: item[1])}
+        keysizes_scores = {
+            k: v for k, v in sorted(keysizes_scores.items(), key=lambda item: item[1])
+        }
         best_keysizes = list(keysizes_scores.keys())[0:3]
 
         keys = {}
@@ -179,13 +182,23 @@ class Set1(object):
                 key += Set1.single_byte_xor_decipher(block)[0]
             keys[keysize] = key
 
-        text_scores = {} 
+        text_scores = {}
         for keysize, key in keys.items():
             text_scores[key] = Set1.chi_squared_scoring(Set1.repeated_xor(text, key))
         key = min(text_scores, key=text_scores.get)
-        
+
         return (key, Set1.repeated_xor(text, key))
-        
+
+    @staticmethod
+    def aes_ecb_decrypt(text: bytes, key: bytes):
+        cipher = AES.new(key, AES.MODE_ECB)
+        blocks = [text[i * 16 : (i * 16) + 16] for i in range(len(text) // 16)]
+
+        result = b""
+        for block in blocks:
+            result += cipher.decrypt(block)
+
+        return result
 
 
 def main():
